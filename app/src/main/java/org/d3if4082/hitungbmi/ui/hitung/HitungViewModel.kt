@@ -6,10 +6,11 @@ import androidx.lifecycle.ViewModel
 import org.d3if4082.hitungbmi.data.HasilBmi
 import org.d3if4082.hitungbmi.data.KategoriBmi
 
-class HitungViewModel : ViewModel() {
+class HitungViewModel(private val db: BmiDao) : ViewModel() {
     private val hasilBmi = MutableLiveData<HasilBmi?>()
 
     private val navigasi = MutableLiveData<KategoriBmi?>()
+    val data = db.getLastBmi()
     fun hitungBmi(berat: String, tinggi: String, isMale: Boolean) {
         val tinggiCm = tinggi.toFloat() / 100
         val bmi = berat.toFloat() / (tinggiCm * tinggiCm)
@@ -27,6 +28,16 @@ class HitungViewModel : ViewModel() {
             }
         }
         hasilBmi.value = HasilBmi(bmi, kategori)
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val dataBmi = BmiEntity(
+                    berat = berat.toFloat(),
+                    tinggi = tinggi.toFloat(),
+                    isMale = isMale
+                )
+                db.insert(dataBmi)
+            }
+        }
     }
     fun mulaiNavigasi() {
         navigasi.value = hasilBmi.value?.kategori

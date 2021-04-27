@@ -15,7 +15,11 @@ import org.d3if4082.hitungbmi.databinding.FragmentHitungBinding
 import org.d3if4082.hitungbmi.ui.HitungFragmentDirections
 
 class HitungFragment : Fragment() {
-    private val viewModel: HitungViewModel by viewModels()
+    private val viewModel: HitungViewModel by lazy {
+        val db = BmiDb.getInstance(requireContext())
+        val factory = HitungViewModelFactory(db.dao)
+        ViewModelProvider(this, factory).get(HitungViewModel::class.java)
+    }
     private lateinit var binding: FragmentHitungBinding
 
 
@@ -38,6 +42,11 @@ class HitungFragment : Fragment() {
             findNavController().navigate(HitungFragmentDirections
                 .actionHitungFragmentToSaranFragment(it))
             viewModel.selesaiNavigasi()
+        })
+
+        viewModel.data.observe(viewLifecycleOwner, {
+            if (it == null) return@observe
+            Log.d("HitungFragment", "Data tersimpan. ID = ${it.id}")
         })
 
     }
